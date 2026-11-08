@@ -1,0 +1,81 @@
+name: travel_planner
+description: "情侣出行规划 App —— 行程记录、消费预算、景点打卡"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # ── 数据层 ──
+  drift: ^2.28.0              # SQLite 的类型安全 ORM
+  drift_flutter: ^0.2.7       # Flutter 集成（自动定位数据库文件）
+  sqlite3_flutter_libs: ^0.5.41  # 各平台的原生 sqlite3 库
+
+  # ── 状态管理 ──
+  flutter_riverpod: ^2.6.1
+
+  # ── 工具 ──
+  intl: ^0.20.2               # 日期/金额格式化
+  path_provider: ^2.1.5       # 获取应用目录（导出文件用）
+  share_plus: ^11.1.0         # 分享导出的 JSON 文件
+  uuid: ^4.5.2                # 生成全局唯一 ID（为日后同步预留）
+  file_picker: ^10.2.0        # 选文件导入候选库（10.x 依赖干净，不带 jni）
+  receive_sharing_intent: ^1.9.0  # 接收微信/QQ 分享过来的 .trip 文件
+
+  # ── 地图 ──
+  flutter_map: ^8.3.2         # OpenStreetMap 地图组件
+  latlong2: ^0.10.1           # flutter_map 用的经纬度类型
+  gal: ^2.3.3                 # 把导出的长图存进系统相册
+  shared_preferences: ^2.3.3  # 记「内置资料库已导入」之类的开关
+
+  # ⚠️ 刻意锁在 2.2.9（2026-09-13 踩坑记录）：
+  #    path_provider_android 从 2.3.0 起引入 jni + jni_flutter 依赖，
+  #    而 jni_flutter 带原生代码，会让 Gradle 出现 :jni 子项目并要求 NDK
+  #    28.2.13676358（Flutter 硬编码值），导致 "NDK not configured" 构建失败。
+  #    2.2.9 是 2.3.0 之前的最后一个干净版本，不含 jni，功能完全够用
+  #    （我们只用来拿导出目录）。等 NDK 装齐后可解除此锁定。
+  path_provider_android: 2.2.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # ── 代码生成 ──
+  drift_dev: ^2.28.0
+  build_runner: ^2.7.1
+
+  # ── 图标生成 ──
+  # 从一张源图自动切出各密度的 launcher 图标
+  flutter_launcher_icons: ^0.14.4
+
+# 图标配置：把 APP_PNG.png 切成 Android 各尺寸
+# 改完图标后运行：dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: false              # iOS 需要 macOS + Xcode 才能打包，先不生成
+  image_path: "APP_PNG.png"
+  # Android 8+ 会用自适应图标（圆形/方形/圆角由系统决定），
+  # 不设这两项的话某些启动器会把图标压扁
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "APP_PNG.png"
+
+flutter:
+  uses-material-design: true
+
+  # 内置资料库：首次启动自动导入，用户不要可以删掉
+  #
+  # ⚠️ 写**整个目录**而不是逐个文件：内置城市会不断增加（当前 2 个，目标 51 个），
+  #    逐个列文件名的话每加一个城市都要改这里，迟早漏。目录写法让「往
+  #    assets/library/ 丢一个 <city_id>.json」就等于内置了一个城市
+  #    （还要在 lib/data/bundled_library.dart 的 kBundledCityIds 里加一行 id）。
+  assets:
+    - assets/library/
